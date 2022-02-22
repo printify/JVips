@@ -56,9 +56,9 @@ include_directories(${GLIB2_INCLUDE_DIRS})
 # Under macOS libvips will not build as is, but you can rely on Homebrew.
 # Here's a formula for vips 8.8.3:
 # $ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/39ba7794c1678b0d61b179239f93e9ac553c045b/Formula/vips.rb
-if(NOT ${BUILD_TARGET} STREQUAL "macOS")
-    add_subdirectory(lib)
-else()
+#if(NOT ${BUILD_TARGET} STREQUAL "macOS")
+#    add_subdirectory(lib)
+#else()
     pkg_check_modules(VIPS REQUIRED vips)
     if (VIPS_FOUND)
         message (STATUS "VIPS_INCLUDE_DIRS=${VIPS_INCLUDE_DIRS}")
@@ -67,7 +67,7 @@ else()
     endif()
     link_directories(${VIPS_LIBRARY_DIRS})
     include_directories(${VIPS_INCLUDE_DIRS})
-endif()
+#endif()
 
 # Use libspng if WITH_LIBSPNG is ON, libpng otherwise.
 option(WITH_LIBSPNG "Build libvips with libspng" OFF)

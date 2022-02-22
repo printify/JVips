@@ -20,9 +20,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class VipsEnumTest {
+    static String getSuffix() {
+        return (System.getProperty("os.arch").equals("aarch64")) ? "-aarch64" : "";
+    }
+
     static {
         ClassLoader classLoader = VipsEnumTest.class.getClassLoader();
-        String libName = System.mapLibraryName("JVipsTest");
+        String libName = System.mapLibraryName("JVipsTest" + getSuffix());
         String path = classLoader.getResource(libName).getPath();
 
         System.load(path);

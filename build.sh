@@ -5,6 +5,7 @@ set -x
 
 BASEDIR="$(pwd)"
 
+ARCH=""
 BUILD_LINUX=1
 BUILD_WIN64=0
 BUILD_MACOS=0
@@ -30,10 +31,15 @@ while true; do
     --minimal ) MAVEN_ARGS="${MAVEN_ARGS} -Pminimal"; shift;;
     --debug ) DEBUG=1; shift ;;
     --jobs ) JOBS="$2"; shift 2 ;;
+    --arch ) ARCH="$2"; shift 2 ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
 done
+
+if [ -n "$ARCH" ]; then
+    ARCH="-${ARCH}"
+fi
 
 if [ ${JOBS} -le 0 ]; then
     JOBS=1
@@ -58,7 +64,7 @@ fi
 
 # Copy maven dependencies for some tests
 mkdir -p "${BUILDDIR}"/artifacts/
-mvn ${MAVEN_ARGS} dependency:copy-dependencies -DoutputDirectory="${BUILDDIR}"/artifacts/
+./mvnw ${MAVEN_ARGS} dependency:copy-dependencies -DoutputDirectory="${BUILDDIR}"/artifacts/
 
 # Create the resource directory where all native libraries will be copied.
 mkdir -p "${BUILDDIR}"/all/
@@ -84,7 +90,7 @@ if [ ${BUILD_LINUX} -gt 0 ]; then
     export HOST="--host=x86_64-pc-linux"
     export TARGET=linux
     export PREFIX="${BUILDDIR}/${TARGET}"/inst/
-    export TOOLCHAIN="${BASEDIR}"/Toolchain-linux.cmake
+    export TOOLCHAIN="${BASEDIR}"/Toolchain-linux${ARCH}.cmake
     export PKG_CONFIG_PATH=/usr/lib64/pkgconfig
 
     mkdir -p "${BUILDDIR}/${TARGET}"/JVips
@@ -97,16 +103,12 @@ if [ ${BUILD_LINUX} -gt 0 ]; then
     }
     popd
 
-    LIBS="JVips/src/main/c/libJVips.so"
-    
+    cp "${BUILDDIR}/${TARGET}/JVips/src/main/c/libJVips.so" "${BUILDDIR}/all/libJVips${ARCH}.so"
     if [ ${RUN_TEST} -gt 0 ]; then
-        LIBS+=" JVips/src/test/c/libJVipsTest.so"
+        cp "${BUILDDIR}/${TARGET}/JVips/src/test/c/libJVipsTest.so" "${BUILDDIR}/all/libJVipsTest${ARCH}.so"
     fi
 
-    for LIB in $LIBS; do
-        cp "${BUILDDIR}/${TARGET}/${LIB}" "${BUILDDIR}"/all/
-    done
-    cp "${BUILDDIR}/${TARGET}/inst/lib/"*.so "${BUILDDIR}"/all/
+    #cp "${BUILDDIR}/${TARGET}/inst/lib/"*.so "${BUILDDIR}"/all/
 
 fi
 
@@ -158,7 +160,7 @@ if [ ${BUILD_MACOS} -gt 0 ]; then
     export HOST=""
     export TARGET=macOS
     export PREFIX="${BUILDDIR}/${TARGET}"/inst/
-    export TOOLCHAIN="${BASEDIR}"/Toolchain-macOS.cmake
+    export TOOLCHAIN="${BASEDIR}"/Toolchain-macOS${ARCH}.cmake
 
     mkdir -p "${BUILDDIR}/${TARGET}"/JVips
     rm -rf "${BUILDDIR}/${TARGET}"/JVips/*
@@ -170,28 +172,22 @@ if [ ${BUILD_MACOS} -gt 0 ]; then
     }
     popd
 
-    LIBS="JVips/src/main/c/libJVips.dylib"
-    
+    cp "${BUILDDIR}/${TARGET}/JVips/src/main/c/libJVips.dylib" "${BUILDDIR}/all/libJVips${ARCH}.dylib"
     if [ ${RUN_TEST} -gt 0 ]; then
-        LIBS+=" JVips/src/test/c/libJVipsTest.dylib"
+        cp "${BUILDDIR}/${TARGET}/JVips/src/test/c/libJVipsTest.dylib" "${BUILDDIR}/all/libJVipsTest${ARCH}.dylib"
     fi
-
-    for LIB in $LIBS; do
-        cp "${BUILDDIR}/${TARGET}/${LIB}" "${BUILDDIR}"/all/
-    done
-
 fi
 
-mvn ${MAVEN_ARGS} -DnewVersion=${VERSION} versions:set
-mvn ${MAVEN_ARGS} -DskipTests clean package
-mvn ${MAVEN_ARGS} versions:revert
+./mvnw ${MAVEN_ARGS} -DnewVersion=${VERSION} versions:set
+./mvnw ${MAVEN_ARGS} -DskipTests clean package
+./mvnw ${MAVEN_ARGS} versions:revert
 
 if [ ${RUN_TEST} -gt 0 ]; then
-    mvn ${MAVEN_ARGS} surefire:test@utest
+    ./mvnw ${MAVEN_ARGS} surefire:test@utest
 fi
 
 if [ ${RUN_BENCHMARK} -gt 0 ]; then
-    mvn ${MAVEN_ARGS} surefire:test@benchmark
+    ./mvnw ${MAVEN_ARGS} surefire:test@benchmark
     if [ ${BUILD_LINUX} -gt 0 ]; then
          "${BUILDDIR}/linux/JVips/src/test/c/benchmark/SimpleBenchmark" "${BASEDIR}/src/test/resources/in_vips.jpg"
     fi

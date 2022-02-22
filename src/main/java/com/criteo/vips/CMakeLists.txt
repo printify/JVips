@@ -35,9 +35,9 @@ create_javah(TARGET Max1Result_header
              CLASSPATH JVipsWrapper
              OUTPUT_NAME ${JNI_HEADER_DIRECTORY}/Max1Result.h)
 
-if(NOT ${BUILD_TARGET} STREQUAL "macOS")
-    add_dependencies(Vips_header libvips)
-    add_dependencies(VipsContext_header libvips)
-    add_dependencies(VipsImage_header libvips)
-    add_dependencies(Max1Result_header libvips)
-endif()
+#if(NOT ${BUILD_TARGET} STREQUAL "macOS")
+#    add_dependencies(Vips_header libvips)
+#    add_dependencies(VipsContext_header libvips)
+#    add_dependencies(VipsImage_header libvips)
+#    add_dependencies(Max1Result_header libvips)
+#endif()

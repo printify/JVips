@@ -69,6 +69,8 @@
                             <exclude>libJVipsTest.so</exclude>
                             <exclude>JVipsTest.dll</exclude>
                             <exclude>libJVipsTest.dylib</exclude>
+                            <exclude>libJVipsTest-aarch64.so</exclude>
+                            <exclude>libJVipsTest-aarch64.dylib</exclude>
                         </excludes>
                     </resource>
                 </resources>
@@ -80,6 +82,8 @@
                             <include>libJVipsTest.so</include>
                             <include>JVipsTest.dll</include>
                             <include>libJVipsTest.dylib</include>
+                            <include>libJVipsTest-aarch64.so</include>
+                            <include>libJVipsTest-aarch64.dylib</include>
                         </includes>
                     </testResource>
 
@@ -114,6 +118,8 @@
                             <include>libJVips.so</include>
                             <include>JVips.dll</include>
                             <include>libJVips.dylib</include>
+                            <include>libJVips-aarch64.so</include>
+                            <include>libJVips-aarch64.dylib</include>
                         </includes>
                     </resource>
                 </resources>
@@ -125,6 +131,8 @@
                             <include>libJVipsTest.so</include>
                             <include>JVipsTest.dll</include>
                             <include>libJVipsTest.dylib</include>
+                            <include>libJVipsTest-aarch64.so</include>
+                            <include>libJVipsTest-aarch64.dylib</include>
                         </includes>
                     </testResource>
                 </testResources>
@@ -199,6 +207,8 @@
                             <exclude>libJVipsTest.so</exclude>
                             <exclude>JVipsTest.dll</exclude>
                             <exclude>libJVipsTest.dylib</exclude>
+                            <exclude>libJVipsTest-aarch64.so</exclude>
+                            <exclude>libJVipsTest-aarch64.dylib</exclude>
                         </excludes>
                     </resource>
                 </resources>
@@ -210,6 +220,8 @@
                             <include>libJVipsTest.so</include>
                             <include>JVipsTest.dll</include>
                             <include>libJVipsTest.dylib</include>
+                            <include>libJVipsTest-aarch64.so</include>
+                            <include>libJVipsTest-aarch64.dylib</include>
                         </includes>
                     </testResource>
 

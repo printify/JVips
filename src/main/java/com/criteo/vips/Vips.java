@@ -59,8 +59,8 @@ public class Vips {
                 LOGGER.info("JVips dependencies have been loaded from jar");
             else
                 LOGGER.info("Using JVips dependencies installed on system");
-            LOGGER.info("Trying to load JVips");
-            loadLibraryFromJar("JVips");
+            LOGGER.info("Trying to load JVips " + System.getProperty("os.arch"));
+            loadLibraryFromJar("JVips" + getSuffix());
             init();
         } catch (IOException e) {
             throw new RuntimeException("Can't load JVips library and/or dependencies");
@@ -110,6 +110,10 @@ public class Vips {
             }
         }
         System.load(temp.getAbsolutePath());
+    }
+
+    static String getSuffix() {
+        return (System.getProperty("os.arch").equals("aarch64")) ? "-aarch64" : "";
     }
 
     /**

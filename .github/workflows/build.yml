@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  build_for_linux:
+  build_for_linux_x64:
     runs-on: ubuntu-latest
     name: Build for Linux
     steps:
@@ -17,9 +17,9 @@ jobs:
       - name: Cache Docker layers
         uses: satackey/action-docker-layer-caching@v0.0.8
         with:
-          key: docker-layers-linux-{hash}
+          key: docker-layers-linux-amd64-{hash}
           restore-keys: |
-            docker-layers-linux-
+            docker-layers-linux-amd64-
         # Ignore the failure of a step and avoid terminating the job.
         continue-on-error: true
 
@@ -27,15 +27,42 @@ jobs:
         run: docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -f .github/docker/linux/Dockerfile -t builder .
 
       - name: Build
-        run: docker run --rm -e CI -v $(pwd):/app -w /app builder
+        run: docker run --rm -e CI -e JAVA_HOME=/usr/lib/jvm/java-openjdk -v $(pwd):/app -w /app builder
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: jvips-libs-linux
           path: JVips-libs.tar.gz
+#  build_for_linux_aarch64:
+#    runs-on: ubuntu-latest
+#    name: Build for Linux aarch64
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Cache Docker layers
+#        uses: satackey/action-docker-layer-caching@v0.0.8
+#        with:
+#          key: docker-layers-linux-aarch64-{hash}
+#          restore-keys: |
+#            docker-layers-linux-aarch64-
+#        # Ignore the failure of a step and avoid terminating the job.
+#        continue-on-error: true
+#
+#      - name: Build Docker builder image
+#        run: docker build --platform linux/arm64 --build-arg ARCH=aarch64 --build-arg UID=$(id -u) --build-arg GID=$(id -g) -f .github/docker/linux/Dockerfile -t builder .
+#
+#      - name: Build
+#        run: docker run --rm -e CI -e ARCH=aarch64 -v $(pwd):/app -w /app builder
+#
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: jvips-libs-linux-aarch64
+#          path: JVips-libs.tar.gz
 
-  build_for_windows:
+  build_for_windows_x64:
     runs-on: ubuntu-latest
     name: Build for Windows
     steps:
@@ -54,7 +81,7 @@ jobs:
           name: jvips-libs-windows
           path: JVips-libs.tar.gz
 
-  build_for_macos:
+  build_for_macos_x64:
     runs-on: macos-latest
     if: github.event_name != 'pull_request' # To speed up the feedback
     name: Build for macOS
@@ -82,18 +109,13 @@ jobs:
           path: JVips-libs.tar.gz
 
   release:
-    needs: [build_for_linux, build_for_macos, build_for_windows]
+    needs: [build_for_linux_x64, build_for_macos_x64, build_for_windows_x64]
     if: contains('refs/heads/master', github.ref)
     runs-on: ubuntu-latest
     name: Merge macOS, Linux, Windows artifacts into a JAR and release it
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Read GPG private key
-        run: echo -ne "$GPG_PRIVATE_KEY" | base64 --decode > $RUNNER_TEMP/key.asc
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.MAVEN_SECRING_GPG_BASE64 }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v2
@@ -111,35 +133,8 @@ jobs:
           mvn -B versions:set -DnewVersion=$VERSION
           echo "::set-output name=version::$VERSION"
 
-      - name: Set up Maven Central Repository
-        uses: warrenseine/setup-java@v1
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-        with:
-          java-version: "1.8.0"
-          java-package: jdk
-          architecture: x64
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key-path: ${{ runner.temp }}/key.asc
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
-
-      - name: Clean GPG private key
-        if: ${{ always() }}
-        run: rm -f $RUNNER_TEMP/key.asc
-
       - name: Publish to the Maven Central Repository
-        run: mvn -B -DskipTests -P deploy deploy
-        env:
-          MAVEN_USERNAME: criteo-oss
-          MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_SECRING_PASSWORD }}
-
-      # - name: Publish to GitHub Packages
-      #   run: mvn -B -DskipTests -P deploy deploy
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn -B -DskipTests -P minimal build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
